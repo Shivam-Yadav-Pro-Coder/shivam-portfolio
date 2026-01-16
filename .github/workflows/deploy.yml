@@ -1,0 +1,33 @@
+name: Deploy Portfolio to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            if [ ! -d /var/www/portfolio ]; then
+              sudo mkdir -p /var/www/portfolio
+              sudo chown ubuntu:ubuntu /var/www/portfolio
+              cd /var/www/portfolio
+              git clone https://github.com/Shivam-Yadav-Pro-Coder/shivam-portfolio.git .
+            else
+              cd /var/www/portfolio
+              git pull origin main
+            fi
+            sudo systemctl reload nginx
+
